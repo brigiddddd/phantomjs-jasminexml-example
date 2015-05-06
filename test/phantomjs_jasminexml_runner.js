@@ -1,3 +1,4 @@
+console.log("phantomjs> jasmine_xmlrunner starting");
 var htmlrunner,
     resultdir,
     page,
@@ -24,6 +25,7 @@ if ( system.args.length !== 3 ) {
     page.open(htmlrunner, function(status) {
         if (status === "success") {
             utils.core.waitfor(function() { // wait for this to be true
+                console.log("phantomjs> waiting for results")
                 return page.evaluate(function() {
                     return typeof(jasmine.phantomjsXMLReporterPassed) !== "undefined";
                 });
@@ -33,17 +35,24 @@ if ( system.args.length !== 3 ) {
                     suitesResults = page.evaluate(function(){
                     return jasmine.phantomjsXMLReporterResults;
                 });
-                
-                // Save the result of the tests in files
-                for ( i = 0, len = suitesResults.length; i < len; ++i ) {
-                    try {
-                        f = fs.open(resultdir + '/' + suitesResults[i]["xmlfilename"], "w");
-                        f.write(suitesResults[i]["xmlbody"]);
-                        f.close();
-                    } catch (e) {
-                        console.log(e);
-                        console.log("phantomjs> Unable to save result of Suite '"+ suitesResults[i]["xmlfilename"] +"'");
+                if (suitesResults) {
+                    // Save the result of the tests in files
+                    for ( i = 0, len = suitesResults.length; i < len; ++i ) {
+                        try {
+                            f = fs.open(resultdir + '/' + suitesResults[i]["xmlfilename"], "w");
+                            f.write(suitesResults[i]["xmlbody"]);
+                            f.close();
+                            
+                            // Print to console too
+                            // console.log(suitesResults[i]["xmlbody"]);
+                        } catch (e) {
+                            console.log(e);
+                            console.log("phantomjs> Unable to save result of Suite '"+ suitesResults[i]["xmlfilename"] +"'");
+                        }
                     }
+                }
+                else {
+                    console.log("phantomjs> No results returned")
                 }
                 
                 // Return the correct exit status. '0' only if all the tests passed
